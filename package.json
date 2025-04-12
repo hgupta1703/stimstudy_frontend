@@ -22,12 +22,14 @@
     "tw-animate-css": "^1.2.5"
   },
   "devDependencies": {
+    "tailwindcss-animate": "^1.0.7",
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",
     "tailwindcss": "^4",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
   }
 }

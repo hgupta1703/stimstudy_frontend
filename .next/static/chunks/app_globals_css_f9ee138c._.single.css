@@ -460,16 +460,16 @@
     right: calc(var(--spacing) * 4);
   }
 
-  .bottom-0 {
-    bottom: calc(var(--spacing) * 0);
-  }
-
   .bottom-20 {
     bottom: calc(var(--spacing) * 20);
   }
 
-  .bottom-40 {
-    bottom: calc(var(--spacing) * 40);
+  .bottom-50 {
+    bottom: calc(var(--spacing) * 50);
+  }
+
+  .bottom-60 {
+    bottom: calc(var(--spacing) * 60);
   }
 
   .left-0 {
@@ -2217,6 +2217,26 @@
 
   .\[\.border-t\]\:pt-6.border-t {
     padding-top: calc(var(--spacing) * 6);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-float-up {
+    animation: 2s ease-out forwards float-up;
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0)scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-100px)scale(.5);
   }
 }
 

@@ -878,7 +878,7 @@ export default function StudyPlanGenerator() {
 									</div>
 
 									{/* Video info overlay at bottom */}
-									<div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+									<div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
 										<h3 className="text-white text-xl font-bold mb-1">
 											{item.title}
 										</h3>
@@ -900,7 +900,7 @@ export default function StudyPlanGenerator() {
 									</div>
 
 									{/* Right side controls */}
-									<div className="absolute right-4 bottom-20 flex flex-col items-center gap-4">
+									<div className="absolute right-4 bottom-50 flex flex-col items-center gap-4">
 										<button
 											className="relative bg-transparent w-12 h-12 rounded-full flex items-center justify-center border border-white text-white"
 											onClick={() => handleHeartClick(index)}
@@ -970,7 +970,7 @@ export default function StudyPlanGenerator() {
 										!showComments && (
 											<button
 												onClick={() => navigateVideo("next")}
-												className="absolute left-4 bottom-40 bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
+												className="absolute left-4 bottom-60 bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
 											>
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
