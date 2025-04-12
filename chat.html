@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2 id="chatTitle">Learning Chat</h2>
+
+    <!-- Character Selection -->
+    <label for="characterSelect">Choose your narrator:</label>
+    <select id="characterSelect">
+      <option value="">-- Select a character --</option>
+      <option value="Spongebob">Spongebob</option>
+      <option value="LeBron">LeBron</option>
+      <option value="Stewie">Stewie</option>
+    </select>
+
+    <div id="chatBox" class="chat-box"></div>
+
+    <input type="text" id="userMessage" placeholder="Type a message..." />
+
+    <div class="button-group">
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="goToVideo()">Generate Video</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
