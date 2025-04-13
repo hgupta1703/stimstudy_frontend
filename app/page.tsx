@@ -308,6 +308,10 @@ export default function StudyPlanGenerator() {
     { id: number; style: React.CSSProperties }[]
   >([]);
   const [likedVideos, setLikedVideos] = useState<number[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [videoLoading, setVideoLoading] = useState<boolean[]>([]);
+  const [videoErrors, setVideoErrors] = useState<boolean[]>([]);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const nextHeartId = useRef(0);
 
   // New state for comments and sharing
@@ -416,36 +420,64 @@ export default function StudyPlanGenerator() {
 
     setIsLoading(true);
 
-    await fetch("http://localhost:4000/generateStudyPlanVideos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        studyPlan: JSON.stringify(studyPlan),
-        background: selectedBackground,
-        voiceActor: selectedCharacter,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
+    try {
+      const response = await fetch(
+        "http://localhost:4000/generateStudyPlanVideos",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            studyPlan: JSON.stringify(studyPlan),
+            background: selectedBackground,
+            voiceActor: selectedCharacter,
+          }),
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Videos generated successfully:", data);
-        // Handle the response data if needed
-      })
-      .catch((error) => {
-        console.error("Failed to generate videos:", error);
-      });
+      );
 
-    // Simulate video loading
-    setTimeout(() => {
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Videos generated successfully:", data);
+
+      // Store the video URLs returned from the API
+      if (Array.isArray(data)) {
+        setVideoUrls(data);
+        // Initialize loading and error states for each video
+        setVideoLoading(new Array(data.length).fill(true));
+        setVideoErrors(new Array(data.length).fill(false));
+      } else {
+        console.error("Unexpected response format:", data);
+      }
+
       setIsLoading(false);
       setStep(5); // Go to video display
-    }, 2000);
+    } catch (error) {
+      console.error("Failed to generate videos:", error);
+      setIsLoading(false);
+      // Could show an error message to the user here
+    }
+  };
+
+  // Handle video load events
+  const handleVideoLoad = (index: number) => {
+    const newLoadingState = [...videoLoading];
+    newLoadingState[index] = false;
+    setVideoLoading(newLoadingState);
+  };
+
+  // Handle video error events
+  const handleVideoError = (index: number) => {
+    const newErrorState = [...videoErrors];
+    newErrorState[index] = true;
+    setVideoErrors(newErrorState);
+
+    const newLoadingState = [...videoLoading];
+    newLoadingState[index] = false;
+    setVideoLoading(newLoadingState);
   };
 
   // Add this function to handle video navigation
@@ -455,7 +487,7 @@ export default function StudyPlanGenerator() {
       return;
     }
 
-    if (direction === "next" && currentVideoIndex < studyPlan.length - 1) {
+    if (direction === "next" && currentVideoIndex < videoUrls.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
     } else if (direction === "prev" && currentVideoIndex > 0) {
       setCurrentVideoIndex(currentVideoIndex - 1);
@@ -478,7 +510,7 @@ export default function StudyPlanGenerator() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [step, currentVideoIndex, studyPlan.length, showComments]);
+  }, [step, currentVideoIndex, videoUrls.length, showComments]);
 
   // Handle wheel scrolling for trackpad
   useEffect(() => {
@@ -525,7 +557,7 @@ export default function StudyPlanGenerator() {
         clearTimeout(wheelTimeoutRef.current);
       }
     };
-  }, [step, currentVideoIndex, studyPlan.length, showComments]);
+  }, [step, currentVideoIndex, videoUrls.length, showComments]);
 
   // Add this to handle swipe gestures
   const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe(
@@ -723,6 +755,38 @@ export default function StudyPlanGenerator() {
       commentsEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [showComments]);
+
+  // Add effect to control video playback when current index changes
+  useEffect(() => {
+    if (step !== 5) return;
+
+    // Pause all videos
+    videoRefs.current.forEach((videoRef, idx) => {
+      if (videoRef && idx !== currentVideoIndex) {
+        videoRef.pause();
+      }
+    });
+
+    // Play current video
+    const currentVideo = videoRefs.current[currentVideoIndex];
+    if (
+      currentVideo &&
+      !videoLoading[currentVideoIndex] &&
+      !videoErrors[currentVideoIndex]
+    ) {
+      currentVideo.play().catch((err: Error) => {
+        console.error("Error playing video:", err);
+      });
+    }
+  }, [currentVideoIndex, step, videoLoading, videoErrors]);
+
+  // Update refs array when video URLs change
+  useEffect(() => {
+    videoRefs.current = videoRefs.current.slice(0, videoUrls.length);
+    while (videoRefs.current.length < videoUrls.length) {
+      videoRefs.current.push(null);
+    }
+  }, [videoUrls.length]);
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">
@@ -1017,7 +1081,7 @@ export default function StudyPlanGenerator() {
 
           {/* TikTok-style video container */}
           <div className="h-screen w-full overflow-hidden">
-            {studyPlan.map((item, index) => (
+            {videoUrls.map((videoUrl, index) => (
               <div
                 key={index}
                 className={`h-screen w-full flex flex-col items-center justify-center absolute inset-0 transition-transform duration-500 ease-in-out ${
@@ -1036,46 +1100,79 @@ export default function StudyPlanGenerator() {
                     {backgrounds.find((b) => b.id === selectedBackground)?.name}
                   </div>
 
-                  {/* Placeholder for actual video - replace with real video component */}
+                  {/* Actual video element */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Video className="h-16 w-16 mx-auto text-white/70" />
-                      <p className="mt-2 text-lg">Video {index + 1}</p>
-                      <p className="text-sm text-white/70">
-                        {selectedBackground === "minecraft" &&
-                          "Minecraft Parkour Background"}
-                        {selectedBackground === "construction" &&
-                          "Construction Background"}
-                        {selectedBackground === "soap" &&
-                          "Soap Cutting Background"}
-                      </p>
-                    </div>
+                    {videoLoading[index] && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
+                        <Loader2 className="h-12 w-12 animate-spin text-white" />
+                      </div>
+                    )}
+
+                    {videoErrors[index] ? (
+                      <div className="text-center text-white">
+                        <X className="h-16 w-16 mx-auto text-red-500" />
+                        <p className="mt-2 text-lg">Failed to load video</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4 text-white border-white"
+                          onClick={() => {
+                            const newErrors = [...videoErrors];
+                            newErrors[index] = false;
+                            setVideoErrors(newErrors);
+
+                            const newLoading = [...videoLoading];
+                            newLoading[index] = true;
+                            setVideoLoading(newLoading);
+                          }}
+                        >
+                          Retry
+                        </Button>
+                      </div>
+                    ) : (
+                      <video
+                        ref={(el) => {
+                          videoRefs.current[index] = el;
+                        }}
+                        src={videoUrl}
+                        controls
+                        loop
+                        className="w-full h-full object-contain"
+                        onLoadedData={() => handleVideoLoad(index)}
+                        onError={() => handleVideoError(index)}
+                      />
+                    )}
                   </div>
 
                   {/* Video info overlay at bottom */}
-                  <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                     <h3 className="text-white text-xl font-bold mb-1">
-                      {item.title}
+                      {index < studyPlan.length
+                        ? studyPlan[index].title
+                        : `Video ${index + 1}`}
                     </h3>
-                    <p className="text-white/80 text-sm mb-2">{item.outline}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                        {item.subject}
-                      </span>
-                      <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                        {item.depth_of_information}
-                      </span>
-                      <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                        {Math.floor(item.proposed_length / 60)}:
-                        {(item.proposed_length % 60)
-                          .toString()
-                          .padStart(2, "0")}
-                      </span>
-                    </div>
+                    <p className="text-white/80 text-sm mb-2">
+                      {index < studyPlan.length ? studyPlan[index].outline : ""}
+                    </p>
+                    {index < studyPlan.length && (
+                      <div className="flex items-center gap-2">
+                        <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                          {studyPlan[index].subject}
+                        </span>
+                        <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                          {studyPlan[index].depth_of_information}
+                        </span>
+                        <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                          {Math.floor(studyPlan[index].proposed_length / 60)}:
+                          {(studyPlan[index].proposed_length % 60)
+                            .toString()
+                            .padStart(2, "0")}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Right side controls */}
-                  <div className="absolute right-4 bottom-50 flex flex-col items-center gap-4">
+                  {/* Right side controls - adjust position to match new footer position */}
+                  <div className="absolute right-4 bottom-36 flex flex-col items-center gap-4">
                     <button
                       className="relative bg-transparent w-12 h-12 rounded-full flex items-center justify-center border border-white text-white"
                       onClick={() => handleHeartClick(index)}
@@ -1141,7 +1238,7 @@ export default function StudyPlanGenerator() {
                     </button>
                   )}
 
-                  {currentVideoIndex < studyPlan.length - 1 &&
+                  {currentVideoIndex < videoUrls.length - 1 &&
                     !showComments && (
                       <button
                         onClick={() => navigateVideo("next")}
@@ -1166,7 +1263,7 @@ export default function StudyPlanGenerator() {
 
                   {/* Progress indicator */}
                   <div className="absolute top-4 left-0 right-0 flex justify-center gap-1 px-4">
-                    {studyPlan.map((_, i) => (
+                    {videoUrls.map((_, i) => (
                       <div
                         key={i}
                         className={`h-1 rounded-full ${
@@ -1324,7 +1421,11 @@ export default function StudyPlanGenerator() {
           <ShareModal
             isOpen={isShareModalOpen}
             onClose={() => setIsShareModalOpen(false)}
-            videoTitle={studyPlan[currentVideoIndex]?.title || "Learning Video"}
+            videoTitle={
+              currentVideoIndex < studyPlan.length
+                ? studyPlan[currentVideoIndex]?.title || "Learning Video"
+                : `Video ${currentVideoIndex + 1}`
+            }
           />
         </div>
       )}

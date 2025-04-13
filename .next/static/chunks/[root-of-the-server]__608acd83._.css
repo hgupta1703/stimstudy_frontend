@@ -460,8 +460,24 @@
     right: calc(var(--spacing) * 4);
   }
 
+  .bottom-0 {
+    bottom: calc(var(--spacing) * 0);
+  }
+
+  .bottom-4 {
+    bottom: calc(var(--spacing) * 4);
+  }
+
   .bottom-20 {
     bottom: calc(var(--spacing) * 20);
+  }
+
+  .bottom-32 {
+    bottom: calc(var(--spacing) * 32);
+  }
+
+  .bottom-36 {
+    bottom: calc(var(--spacing) * 36);
   }
 
   .bottom-50 {
@@ -1236,6 +1252,16 @@
     }
   }
 
+  .bg-black\/60 {
+    background-color: #0009;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-black\/60 {
+      background-color: color-mix(in oklab, var(--color-black) 60%, transparent);
+    }
+  }
+
   .bg-black\/70 {
     background-color: #000000b3;
   }
@@ -1406,6 +1432,10 @@
 
   .mask-repeat {
     mask-repeat: repeat;
+  }
+
+  .object-contain {
+    object-fit: contain;
   }
 
   .object-cover {
