@@ -1066,7 +1066,14 @@ export default function StudyPlanGenerator() {
           <Button
             variant="ghost"
             className="absolute top-4 left-4 z-50 text-white bg-black/50 hover:bg-black/70 rounded-full p-2 h-10 w-10"
-            onClick={() => setStep(1)}
+            onClick={() => {
+              const confirmed = window.confirm(
+                "Are you sure you want to go back? Everything will reset and you will be redirected to the prompt page."
+              );
+              if (confirmed) {
+                setStep(1);
+              }
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
