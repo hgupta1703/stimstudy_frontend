@@ -26,6 +26,7 @@ import {
 	Check,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { backgrounds, characters } from "@/options";
 
 // Add this custom hook at the top of the file, before the StudyPlanGenerator component
 // This will help with detecting swipe gestures for mobile users
@@ -74,7 +75,37 @@ function useSwipe(onSwipeUp: () => void, onSwipeDown: () => void) {
 }
 
 // Mock study plan data - in a real app, this would come from your API
+
+const generateStudyPlan = async (topic: string) => {
+	try {
+		const response = await fetch("http://localhost:4000/createStudyPlan", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ "prompt": `${topic}` }),
+		});
+
+		
+		if (!response.ok) {
+			throw new Error(`Error: ${response.statusText}`);
+		}
+		const rawData = await response.text();
+		const cleanedData = rawData.replace(/^```json/, "").replace(/```$/, "").trim();
+		console.log(cleanedData);
+
+		const data = JSON.parse(cleanedData);
+
+		console.log("Generated study plan:", data);
+		return data; // Assuming the API returns a JSON object
+	} catch (error) {
+		console.error("Failed to generate study plan:", error);
+		return null;
+	}
+};
+
 const generateMockStudyPlan = (topic: string) => {
+
 	return [
 		{
 			subject: "Theory",
@@ -107,46 +138,7 @@ const generateMockStudyPlan = (topic: string) => {
 	];
 };
 
-// Character options for narration
-const characters = [
-	{
-		id: "stewie",
-		name: "Stewie",
-		avatar: "/placeholder.svg?height=80&width=80",
-	},
-	{
-		id: "lebron",
-		name: "LeBron",
-		avatar: "/placeholder.svg?height=80&width=80",
-	},
-	{
-		id: "spongebob",
-		name: "SpongeBob",
-		avatar: "/placeholder.svg?height=80&width=80",
-	},
-];
 
-// Background options
-const backgrounds = [
-	{
-		id: "minecraft",
-		name: "Minecraft Parkour",
-		image: "/placeholder.svg?height=120&width=200",
-		description: "Learn while watching Minecraft parkour gameplay",
-	},
-	{
-		id: "construction",
-		name: "Construction",
-		image: "/placeholder.svg?height=120&width=200",
-		description: "Building and construction scenes as your background",
-	},
-	{
-		id: "soap",
-		name: "Soap Cutting",
-		image: "/placeholder.svg?height=120&width=200",
-		description: "Relaxing soap cutting videos in the background",
-	},
-];
 
 // Comment type definition
 type Comment = {
@@ -272,18 +264,25 @@ export default function StudyPlanGenerator() {
 	const commentsEndRef = useRef<HTMLDivElement>(null);
 
 	// Handle the initial prompt submission
-	const handlePromptSubmit = () => {
+	const handlePromptSubmit = async () => {
 		if (!learningPrompt) return;
 
 		setIsLoading(true);
 
 		// Simulate API call with a timeout
-		setTimeout(() => {
-			const generatedPlan = generateMockStudyPlan(learningPrompt);
+		setTimeout(async () => {
+			const generatedPlan = await generateStudyPlan(learningPrompt);
 			setStudyPlan(generatedPlan);
 			setIsLoading(false);
 			setStep(2);
 		}, 1500);
+
+		// setTimeout(async () => {
+		// 	const generatedPlan = await generateMockStudyPlan(learningPrompt);
+		// 	setStudyPlan(generatedPlan);
+		// 	setIsLoading(false);
+		// 	setStep(2);
+		// }, 1500);
 	};
 
 	const debug = () => {
@@ -303,27 +302,107 @@ export default function StudyPlanGenerator() {
 	};
 
 	// Handle refinement submission
-	const handleRefinementSubmit = () => {
-		if (!refinementInstructions) return;
+	// const handleRefinementSubmit = async () => {
+	// 	if (!refinementInstructions) return;
 
+	// 	setIsLoading(true);
+
+	// 	// Simulate API call with a timeout
+	// 	// setTimeout(() => {
+	// 	// 	// In a real app, you would send the refinement instructions to your API
+			
+	// 	// 	// Here we're just modifying the mock data slightly
+	// 	// 	const refinedPlan = studyPlan.map((item) => ({
+	// 	// 		...item,
+	// 	// 		title: item.title.includes("Refined")
+	// 	// 			? item.title
+	// 	// 			: `Refined: ${item.title}`,
+	// 	// 	}));
+
+	// 	// 	setStudyPlan(refinedPlan);
+	// 	// 	setRefinementInstructions("");
+	// 	// 	setIsLoading(false);
+	// 	// 	setStep(2); // Back to review
+	// 	// }, 1500);
+
+	// 	try {
+	// 		const response = await fetch("http://localhost:4000/refineStudyPlan", {
+	// 			method: "POST",
+	// 			headers: {
+	// 				"Content-Type": "application/json",
+	// 			},
+	// 			body: JSON.stringify({
+	// 				prompt: `${JSON.stringify(studyPlan)}`,
+	// 				refinement: `${refinementInstructions}`,
+	// 			}),
+	// 		});
+
+	// 		if (!response.ok) {
+	// 			throw new Error(`Error: ${response.statusText}`);
+	// 		}
+	// 		const rawData = await response.text();
+	// 		const cleanedData = rawData
+	// 			.replace(/^```json/, "")
+	// 			.replace(/```$/, "")
+	// 			.trim();
+
+	// 		const refinedPlan = await JSON.parse(cleanedData);
+	// 		setStudyPlan(refinedPlan);
+	// 		setRefinementInstructions("");
+
+	// 		console.log("refined", studyPlan)
+	// 		setIsLoading(false);
+	// 		setStep(2); // Back to review
+	// 	} catch (error) {
+	// 		console.error("Failed to generate study plan:", error);
+	// 		return null;
+	// 	}
+	// };
+
+	const handleRefinementSubmit = async () => {
+		if (!refinementInstructions) return;
 		setIsLoading(true);
 
-		// Simulate API call with a timeout
-		setTimeout(() => {
-			// In a real app, you would send the refinement instructions to your API
-			// Here we're just modifying the mock data slightly
-			const refinedPlan = studyPlan.map((item) => ({
-				...item,
-				title: item.title.includes("Refined")
-					? item.title
-					: `Refined: ${item.title}`,
-			}));
+		try {
+			const response = await fetch("http://localhost:4000/refineStudyPlan", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					prompt: JSON.stringify(studyPlan),
+					refinement: refinementInstructions,
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Error: ${response.statusText}`);
+			}
+
+			const rawData = await response.text();
+			console.log("raw", JSON.stringify(rawData));
+			const cleanedData = rawData
+				.replace(/^```json/, "")
+				.replace(/```$/, "")
+				.trim();
+
+			// Ensure the data is parsed as an array
+			const refinedPlan = JSON.parse(cleanedData);
+			console.log("refined", JSON.stringify(refinedPlan));
+			if (!Array.isArray(refinedPlan)) {
+				throw new Error("Received invalid study plan format");
+			}
 
 			setStudyPlan(refinedPlan);
 			setRefinementInstructions("");
 			setIsLoading(false);
 			setStep(2); // Back to review
-		}, 1500);
+		} catch (error) {
+			console.error("Failed to refine study plan:", error);
+			setIsLoading(false);
+			// Optionally show an error message to the user
+			return null;
+		}
 	};
 
 	// Handle character and background selection
@@ -727,7 +806,13 @@ export default function StudyPlanGenerator() {
 													{character.name.substring(0, 2)}
 												</AvatarFallback>
 											</Avatar>
-											<span className="font-medium">{character.name}</span>
+											<span
+												className={`font-medium text-center ${
+													character.name.length > 2 ? "text-sm" : "text-base"
+												}`}
+											>
+												{character.name}
+											</span>
 										</div>
 									))}
 								</div>
