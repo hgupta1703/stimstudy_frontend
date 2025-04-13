@@ -722,7 +722,7 @@ function StudyPlanGenerator() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                studyPlan: JSON.stringify(studyPlan),
+                studyPlan: studyPlan,
                 background: selectedBackground,
                 voiceActor: selectedCharacter
             })
