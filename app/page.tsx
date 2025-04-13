@@ -317,13 +317,13 @@ const ShareModal = ({
 
 // Add this mock video generation function
 const generateMockVideos = (count: number = 4): string[] => {
-  // Use demo videos that are known to work well on mobile
+  // Use demo videos from a CDN or public URLs that work on mobile
   const demoVideos = [
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-woman-typing-on-a-laptop-keyboard-4839-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-teacher-giving-a-lesson-in-front-of-a-whiteboard-9786-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-man-with-vr-glasses-at-a-technology-showroom-32757-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-man-working-on-his-laptop-306-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-typing-on-laptop-keyboard-from-above-4825-large.mp4",
   ];
 
   // Return requested number of videos, cycling through available ones if needed
@@ -347,7 +347,6 @@ export default function StudyPlanGenerator() {
   >([]);
   const [likedVideos, setLikedVideos] = useState<number[]>([]);
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
-  const [videoLoading, setVideoLoading] = useState<boolean[]>([]);
   const [videoErrors, setVideoErrors] = useState<boolean[]>([]);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const nextHeartId = useRef(0);
@@ -502,7 +501,6 @@ export default function StudyPlanGenerator() {
 
       // First try the standard API approach
       try {
-        console.log("Attempting to generate videos via API");
         const response = await fetch(
           `${API_BASE_URL}/generateStudyPlanVideos`,
           {
@@ -515,7 +513,7 @@ export default function StudyPlanGenerator() {
               background: selectedBackground,
               voiceActor: selectedCharacter,
             }),
-            signal: AbortSignal.timeout(5000), // Shorter timeout for faster fallback
+            signal: AbortSignal.timeout(10000), // Reduce timeout for faster fallback
           }
         );
 
@@ -524,26 +522,19 @@ export default function StudyPlanGenerator() {
         }
 
         data = await response.json();
+        console.log("Videos generated successfully:", data);
 
         if (!Array.isArray(data) || data.length === 0) {
           throw new Error("API returned empty or invalid data");
         }
-
-        console.log("Videos generated successfully via API:", data);
       } catch (apiError) {
-        console.warn(
-          "API video generation failed, using fallback videos:",
-          apiError
-        );
-        // Use mock videos as fallback - pass the actual length we need
-        data = generateMockVideos(studyPlan.length || 4);
-        console.log("Using fallback videos:", data);
+        console.warn("API video generation failed, using mock data:", apiError);
+        // Use mock videos as fallback
+        data = generateMockVideos(studyPlan.length);
       }
 
-      // Store the video URLs
+      // Store the video URLs and move directly to display
       setVideoUrls(data);
-      // Initialize loading and error states for each video
-      setVideoLoading(new Array(data.length).fill(true));
       setVideoErrors(new Array(data.length).fill(false));
       setIsLoading(false);
       setStep(5); // Go to video display
@@ -552,15 +543,12 @@ export default function StudyPlanGenerator() {
 
       // Last resort fallback - still show videos even if all else fails
       try {
-        console.log("Using emergency fallback videos");
         const mockVideos = generateMockVideos(studyPlan.length || 4);
         setVideoUrls(mockVideos);
-        setVideoLoading(new Array(mockVideos.length).fill(true));
         setVideoErrors(new Array(mockVideos.length).fill(false));
         setIsLoading(false);
         setStep(5);
       } catch (fallbackError) {
-        console.error("Even fallback failed:", fallbackError);
         setIsLoading(false);
         alert("Sorry, there was an error generating videos. Please try again.");
       }
@@ -569,29 +557,27 @@ export default function StudyPlanGenerator() {
 
   // Handle video load events
   const handleVideoLoad = (index: number) => {
-    console.log(`Video ${index} loaded successfully: ${videoUrls[index]}`);
-    const newLoadingState = [...videoLoading];
-    newLoadingState[index] = false;
-    setVideoLoading(newLoadingState);
+    console.log(`Video ${index} loaded successfully`);
 
-    // Try to play the video if it's the current one
+    // Try to play and unmute the video if it's the current one
     if (index === currentVideoIndex) {
       const videoRef = videoRefs.current[index];
       if (videoRef) {
-        // Use muted playback which is more likely to work on mobile
-        videoRef.muted = true;
+        // Play with unmute after a short delay
         videoRef
           .play()
           .then(() => {
-            // Once successfully playing, can try to unmute on user interaction
-            console.log(`Video ${index} playing successfully`);
-            videoRef.muted = false;
+            // Wait a moment before unmuting to avoid autoplay restrictions
+            setTimeout(() => {
+              try {
+                videoRef.muted = false;
+              } catch (e) {
+                console.warn("Could not unmute video:", e);
+              }
+            }, 500);
           })
           .catch((err) => {
-            console.warn(
-              "Could not autoplay video, will require user interaction:",
-              err
-            );
+            console.warn("Video playback issue:", err);
           });
       }
     }
@@ -599,24 +585,19 @@ export default function StudyPlanGenerator() {
 
   // Handle video error events
   const handleVideoError = (index: number) => {
-    console.error(`Error loading video ${index}: ${videoUrls[index]}`);
-
-    // Try to automatically replace with a fallback video
-    const fallbackVideos = generateMockVideos(studyPlan.length);
-    const newUrls = [...videoUrls];
-    newUrls[index] = fallbackVideos[index % fallbackVideos.length];
-    console.log(`Replacing with fallback: ${newUrls[index]}`);
-    setVideoUrls(newUrls);
-
-    // Reset error state so it will try to load the new URL
+    console.error(`Error loading video ${index}`);
     const newErrorState = [...videoErrors];
-    newErrorState[index] = false;
+    newErrorState[index] = true;
     setVideoErrors(newErrorState);
 
-    // Keep the loading state as true
-    const newLoadingState = [...videoLoading];
-    newLoadingState[index] = true;
-    setVideoLoading(newLoadingState);
+    // If current video failed, try to play the next one or previous one
+    if (index === currentVideoIndex) {
+      if (index < videoUrls.length - 1) {
+        setCurrentVideoIndex(index + 1);
+      } else if (index > 0) {
+        setCurrentVideoIndex(index - 1);
+      }
+    }
   };
 
   // Add this function to handle video navigation
@@ -909,38 +890,35 @@ export default function StudyPlanGenerator() {
 
     // Play current video
     const currentVideo = videoRefs.current[currentVideoIndex];
-    if (
-      currentVideo &&
-      !videoLoading[currentVideoIndex] &&
-      !videoErrors[currentVideoIndex]
-    ) {
-      // On mobile, especially iOS, videos can only play after user interaction
-      // Try muted first which has less restrictions
-      currentVideo.muted = true;
+    if (currentVideo && !videoErrors[currentVideoIndex]) {
+      try {
+        // Start with muted to ensure playback on all devices
+        currentVideo.muted = true;
+        currentVideo.currentTime = 0;
 
-      const playPromise = currentVideo.play();
-
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            // Auto-play successful
-            // Can try to unmute - this may still require user interaction
-            setTimeout(() => {
-              try {
-                currentVideo.muted = false;
-              } catch (e) {
-                console.warn("Could not unmute video:", e);
-              }
-            }, 1000);
-          })
-          .catch((err) => {
-            console.warn("Auto-play prevented by browser:", err);
-            // Show a play button or instructions for user interaction
-            // This can be handled by the controls attribute
-          });
+        // Play the video
+        const playPromise = currentVideo.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // After successful playback, try to unmute
+              setTimeout(() => {
+                try {
+                  currentVideo.muted = false;
+                } catch (e) {
+                  console.warn("Could not unmute video:", e);
+                }
+              }, 500);
+            })
+            .catch((err) => {
+              console.warn("Auto-play failed, may need user interaction:", err);
+            });
+        }
+      } catch (err) {
+        console.error("Error during video playback:", err);
       }
     }
-  }, [currentVideoIndex, step, videoLoading, videoErrors]);
+  }, [currentVideoIndex, step, videoErrors]);
 
   // Update refs array when video URLs change
   useEffect(() => {
@@ -1275,12 +1253,6 @@ export default function StudyPlanGenerator() {
 
                   {/* Actual video element */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    {videoLoading[index] && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
-                        <Loader2 className="h-12 w-12 animate-spin text-white" />
-                      </div>
-                    )}
-
                     {videoErrors[index] ? (
                       <div className="text-center text-white">
                         <X className="h-16 w-16 mx-auto text-red-500" />
@@ -1293,51 +1265,32 @@ export default function StudyPlanGenerator() {
                             newErrors[index] = false;
                             setVideoErrors(newErrors);
 
-                            const newLoading = [...videoLoading];
-                            newLoading[index] = true;
-                            setVideoLoading(newLoading);
-
-                            // Try loading a fallback video
-                            const fallbackVideos = generateMockVideos(
-                              studyPlan.length
-                            );
+                            // Try a different video URL as fallback
+                            const fallbackVideos = generateMockVideos(1);
                             const newUrls = [...videoUrls];
-                            newUrls[index] =
-                              fallbackVideos[index % fallbackVideos.length];
+                            newUrls[index] = fallbackVideos[0];
                             setVideoUrls(newUrls);
                           }}
                         >
-                          Try Fallback Video
+                          Try Another Video
                         </Button>
                       </div>
                     ) : (
-                      <>
-                        <video
-                          ref={(el) => {
-                            videoRefs.current[index] = el;
-                          }}
-                          src={videoUrl}
-                          controls
-                          loop
-                          playsInline
-                          preload="auto"
-                          poster="https://placehold.co/600x400/black/white?text=Loading+Video"
-                          className="w-full h-full object-contain"
-                          onLoadedData={() => handleVideoLoad(index)}
-                          onError={() => handleVideoError(index)}
-                          style={{
-                            display: videoLoading[index] ? "none" : "block",
-                          }}
-                        />
-                        {videoLoading[index] && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
-                            <Loader2 className="h-12 w-12 animate-spin text-white mb-2" />
-                            <p className="text-white text-sm">
-                              Loading video...
-                            </p>
-                          </div>
-                        )}
-                      </>
+                      <video
+                        ref={(el) => {
+                          videoRefs.current[index] = el;
+                        }}
+                        src={videoUrl}
+                        controls
+                        loop
+                        playsInline
+                        autoPlay
+                        muted
+                        preload="auto"
+                        className="w-full h-full object-contain"
+                        onLoadedData={() => handleVideoLoad(index)}
+                        onError={() => handleVideoError(index)}
+                      />
                     )}
                   </div>
 
