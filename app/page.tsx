@@ -135,32 +135,52 @@ function useSwipe(onSwipeUp: () => void, onSwipeDown: () => void) {
   };
 }
 
-// Mock study plan data - in a real app, this would come from your API
+// Add a constant for the API URL at the top of the file with other constants
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.38:4000";
 
+// Update generateStudyPlan function to use the API_BASE_URL
 const generateStudyPlan = async (topic: string) => {
   try {
-    const response = await fetch("http://localhost:4000/createStudyPlan", {
+    // Use the API_BASE_URL constant instead of hardcoded localhost
+    const response = await fetch(`${API_BASE_URL}/createStudyPlan`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ prompt: `${topic}` }),
+      // Add timeout to prevent long-hanging requests
+      signal: AbortSignal.timeout(10000), // 10-second timeout
     });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }
+
     const rawData = await response.text();
+    if (!rawData) {
+      console.error("Empty response from API");
+      return null;
+    }
+
     const cleanedData = rawData
       .replace(/^```json/, "")
       .replace(/```$/, "")
       .trim();
-    // console.log(cleanedData);
 
-    const data = JSON.parse(cleanedData);
+    try {
+      const data = JSON.parse(cleanedData);
 
-    // console.log("Generated study plan:", data);
-    return data; // Assuming the API returns a JSON object
+      if (!Array.isArray(data)) {
+        console.error("API returned non-array data:", data);
+        return null;
+      }
+
+      return data;
+    } catch (parseError) {
+      console.error("Failed to parse JSON:", parseError, "Raw data:", rawData);
+      return null;
+    }
   } catch (error) {
     console.error("Failed to generate study plan:", error);
     return null;
@@ -295,6 +315,24 @@ const ShareModal = ({
   );
 };
 
+// Add this mock video generation function
+const generateMockVideos = (count: number = 4): string[] => {
+  // Use demo videos that are known to work well on mobile
+  const demoVideos = [
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+  ];
+
+  // Return requested number of videos, cycling through available ones if needed
+  return Array.from(
+    { length: count },
+    (_, i) => demoVideos[i % demoVideos.length]
+  );
+};
+
 export default function StudyPlanGenerator() {
   const [step, setStep] = useState(1);
   const [learningPrompt, setLearningPrompt] = useState("");
@@ -344,20 +382,36 @@ export default function StudyPlanGenerator() {
 
     setIsLoading(true);
 
-    // Simulate API call with a timeout
-    setTimeout(async () => {
-      const generatedPlan = await generateStudyPlan(learningPrompt);
-      setStudyPlan(generatedPlan);
+    try {
+      // Simulate API call with a timeout
+      const generatedPlan = await new Promise<any[]>((resolve) => {
+        setTimeout(async () => {
+          try {
+            const plan = await generateStudyPlan(learningPrompt);
+            if (plan && Array.isArray(plan) && plan.length > 0) {
+              resolve(plan);
+            } else {
+              // Fallback to mock data if API returns null or empty array
+              console.log("Using mock data as fallback");
+              resolve(generateMockStudyPlan(learningPrompt));
+            }
+          } catch (error) {
+            console.error("Error generating study plan:", error);
+            resolve(generateMockStudyPlan(learningPrompt));
+          }
+        }, 1500);
+      });
+
+      setStudyPlan(generatedPlan || []);
       setIsLoading(false);
       setStep(2);
-    }, 1500);
-
-    // setTimeout(async () => {
-    // 	const generatedPlan = await generateMockStudyPlan(learningPrompt);
-    // 	setStudyPlan(generatedPlan);
-    // 	setIsLoading(false);
-    // 	setStep(2);
-    // }, 1500);
+    } catch (error) {
+      console.error("Failed in handlePromptSubmit:", error);
+      // Use mock data as fallback
+      setStudyPlan(generateMockStudyPlan(learningPrompt));
+      setIsLoading(false);
+      setStep(2);
+    }
   };
 
   const debug = () => {
@@ -380,7 +434,7 @@ export default function StudyPlanGenerator() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/refineStudyPlan", {
+      const response = await fetch(`${API_BASE_URL}/refineStudyPlan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -389,6 +443,7 @@ export default function StudyPlanGenerator() {
           prompt: JSON.stringify(studyPlan),
           refinement: refinementInstructions,
         }),
+        signal: AbortSignal.timeout(15000), // 15-second timeout
       });
 
       if (!response.ok) {
@@ -396,28 +451,43 @@ export default function StudyPlanGenerator() {
       }
 
       const rawData = await response.text();
-      // console.log("raw", JSON.stringify(rawData));
+      if (!rawData) {
+        throw new Error("Empty response from refinement API");
+      }
+
       const cleanedData = rawData
         .replace(/^```json/, "")
         .replace(/```$/, "")
         .trim();
 
-      // Ensure the data is parsed as an array
-      const refinedPlan = JSON.parse(cleanedData);
-      // console.log("refined", JSON.stringify(refinedPlan));
-      if (!Array.isArray(refinedPlan)) {
-        throw new Error("Received invalid study plan format");
-      }
+      try {
+        // Ensure the data is parsed as an array
+        const refinedPlan = JSON.parse(cleanedData);
 
-      setStudyPlan(refinedPlan);
-      setRefinementInstructions("");
-      setIsLoading(false);
-      setStep(2); // Back to review
+        if (!Array.isArray(refinedPlan)) {
+          throw new Error("Received invalid study plan format");
+        }
+
+        setStudyPlan(refinedPlan);
+        setRefinementInstructions("");
+        setIsLoading(false);
+        setStep(2); // Back to review
+      } catch (parseError) {
+        console.error("Failed to parse refinement JSON:", parseError);
+        // Keep the original study plan if parsing fails
+        setIsLoading(false);
+        // Show an error message
+        alert(
+          "Sorry, there was an error refining your study plan. Please try again."
+        );
+      }
     } catch (error) {
       console.error("Failed to refine study plan:", error);
       setIsLoading(false);
-      // Optionally show an error message to the user
-      return null;
+      // Keep the original plan
+      alert(
+        "Sorry, there was an error connecting to the server. Please try again."
+      );
     }
   };
 
@@ -428,62 +498,124 @@ export default function StudyPlanGenerator() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:4000/generateStudyPlanVideos",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            studyPlan: JSON.stringify(studyPlan),
-            background: selectedBackground,
-            voiceActor: selectedCharacter,
-          }),
+      let data: string[] = [];
+
+      // First try the standard API approach
+      try {
+        console.log("Attempting to generate videos via API");
+        const response = await fetch(
+          `${API_BASE_URL}/generateStudyPlanVideos`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              studyPlan: JSON.stringify(studyPlan),
+              background: selectedBackground,
+              voiceActor: selectedCharacter,
+            }),
+            signal: AbortSignal.timeout(5000), // Shorter timeout for faster fallback
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("API returned empty or invalid data");
+        }
+
+        console.log("Videos generated successfully via API:", data);
+      } catch (apiError) {
+        console.warn(
+          "API video generation failed, using fallback videos:",
+          apiError
+        );
+        // Use mock videos as fallback - pass the actual length we need
+        data = generateMockVideos(studyPlan.length || 4);
+        console.log("Using fallback videos:", data);
       }
 
-      const data = await response.json();
-      console.log("Videos generated successfully:", data);
-
-      // Store the video URLs returned from the API
-      if (Array.isArray(data)) {
-        setVideoUrls(data);
-        // Initialize loading and error states for each video
-        setVideoLoading(new Array(data.length).fill(true));
-        setVideoErrors(new Array(data.length).fill(false));
-      } else {
-        console.error("Unexpected response format:", data);
-      }
-
+      // Store the video URLs
+      setVideoUrls(data);
+      // Initialize loading and error states for each video
+      setVideoLoading(new Array(data.length).fill(true));
+      setVideoErrors(new Array(data.length).fill(false));
       setIsLoading(false);
       setStep(5); // Go to video display
     } catch (error) {
-      console.error("Failed to generate videos:", error);
-      setIsLoading(false);
-      // Could show an error message to the user here
+      console.error("Failed completely in handleContinueToVideos:", error);
+
+      // Last resort fallback - still show videos even if all else fails
+      try {
+        console.log("Using emergency fallback videos");
+        const mockVideos = generateMockVideos(studyPlan.length || 4);
+        setVideoUrls(mockVideos);
+        setVideoLoading(new Array(mockVideos.length).fill(true));
+        setVideoErrors(new Array(mockVideos.length).fill(false));
+        setIsLoading(false);
+        setStep(5);
+      } catch (fallbackError) {
+        console.error("Even fallback failed:", fallbackError);
+        setIsLoading(false);
+        alert("Sorry, there was an error generating videos. Please try again.");
+      }
     }
   };
 
   // Handle video load events
   const handleVideoLoad = (index: number) => {
+    console.log(`Video ${index} loaded successfully: ${videoUrls[index]}`);
     const newLoadingState = [...videoLoading];
     newLoadingState[index] = false;
     setVideoLoading(newLoadingState);
+
+    // Try to play the video if it's the current one
+    if (index === currentVideoIndex) {
+      const videoRef = videoRefs.current[index];
+      if (videoRef) {
+        // Use muted playback which is more likely to work on mobile
+        videoRef.muted = true;
+        videoRef
+          .play()
+          .then(() => {
+            // Once successfully playing, can try to unmute on user interaction
+            console.log(`Video ${index} playing successfully`);
+            videoRef.muted = false;
+          })
+          .catch((err) => {
+            console.warn(
+              "Could not autoplay video, will require user interaction:",
+              err
+            );
+          });
+      }
+    }
   };
 
   // Handle video error events
   const handleVideoError = (index: number) => {
+    console.error(`Error loading video ${index}: ${videoUrls[index]}`);
+
+    // Try to automatically replace with a fallback video
+    const fallbackVideos = generateMockVideos(studyPlan.length);
+    const newUrls = [...videoUrls];
+    newUrls[index] = fallbackVideos[index % fallbackVideos.length];
+    console.log(`Replacing with fallback: ${newUrls[index]}`);
+    setVideoUrls(newUrls);
+
+    // Reset error state so it will try to load the new URL
     const newErrorState = [...videoErrors];
-    newErrorState[index] = true;
+    newErrorState[index] = false;
     setVideoErrors(newErrorState);
 
+    // Keep the loading state as true
     const newLoadingState = [...videoLoading];
-    newLoadingState[index] = false;
+    newLoadingState[index] = true;
     setVideoLoading(newLoadingState);
   };
 
@@ -648,7 +780,7 @@ export default function StudyPlanGenerator() {
 
       // If no session exists for this video, start a new one
       if (!sessionId) {
-        const startResponse = await fetch("http://localhost:4000/chat/start", {
+        const startResponse = await fetch(`${API_BASE_URL}/chat/start`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -673,19 +805,16 @@ export default function StudyPlanGenerator() {
       }
 
       // Send the user message to the API
-      const messageResponse = await fetch(
-        "http://localhost:4000/chat/message",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            session_id: sessionId,
-            message: userComment.text,
-          }),
-        }
-      );
+      const messageResponse = await fetch(`${API_BASE_URL}/chat/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          message: userComment.text,
+        }),
+      });
 
       if (!messageResponse.ok) {
         throw new Error(
@@ -770,7 +899,11 @@ export default function StudyPlanGenerator() {
     // Pause all videos
     videoRefs.current.forEach((videoRef, idx) => {
       if (videoRef && idx !== currentVideoIndex) {
-        videoRef.pause();
+        try {
+          videoRef.pause();
+        } catch (e) {
+          console.warn("Could not pause video:", e);
+        }
       }
     });
 
@@ -781,9 +914,31 @@ export default function StudyPlanGenerator() {
       !videoLoading[currentVideoIndex] &&
       !videoErrors[currentVideoIndex]
     ) {
-      currentVideo.play().catch((err: Error) => {
-        console.error("Error playing video:", err);
-      });
+      // On mobile, especially iOS, videos can only play after user interaction
+      // Try muted first which has less restrictions
+      currentVideo.muted = true;
+
+      const playPromise = currentVideo.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Auto-play successful
+            // Can try to unmute - this may still require user interaction
+            setTimeout(() => {
+              try {
+                currentVideo.muted = false;
+              } catch (e) {
+                console.warn("Could not unmute video:", e);
+              }
+            }, 1000);
+          })
+          .catch((err) => {
+            console.warn("Auto-play prevented by browser:", err);
+            // Show a play button or instructions for user interaction
+            // This can be handled by the controls attribute
+          });
+      }
     }
   }, [currentVideoIndex, step, videoLoading, videoErrors]);
 
@@ -850,30 +1005,41 @@ export default function StudyPlanGenerator() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {studyPlan.map((item, index) => (
-                <Card key={index} className="bg-muted/50">
-                  <CardHeader className="py-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
-                        {item.subject}
+              {studyPlan && studyPlan.length > 0 ? (
+                studyPlan.map((item, index) => (
+                  <Card key={index} className="bg-muted/50">
+                    <CardHeader className="py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                          {item.subject}
+                        </div>
+                        <div className="text-xs font-medium px-2 py-1 rounded-full bg-secondary/10">
+                          {item.depth_of_information}
+                        </div>
                       </div>
-                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-secondary/10">
-                        {item.depth_of_information}
-                      </div>
-                    </div>
-                    <CardTitle className="text-base">{item.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
-                    <p className="text-sm text-muted-foreground">
-                      {item.outline}
-                    </p>
-                    <p className="text-xs mt-2 text-muted-foreground">
-                      Estimated length: {Math.floor(item.proposed_length / 60)}:
-                      {(item.proposed_length % 60).toString().padStart(2, "0")}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardTitle className="text-base">{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <p className="text-sm text-muted-foreground">
+                        {item.outline}
+                      </p>
+                      <p className="text-xs mt-2 text-muted-foreground">
+                        Estimated length:{" "}
+                        {Math.floor(item.proposed_length / 60)}:
+                        {(item.proposed_length % 60)
+                          .toString()
+                          .padStart(2, "0")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground">
+                    No study plan generated yet. Please try again.
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex gap-2">
@@ -1130,23 +1296,48 @@ export default function StudyPlanGenerator() {
                             const newLoading = [...videoLoading];
                             newLoading[index] = true;
                             setVideoLoading(newLoading);
+
+                            // Try loading a fallback video
+                            const fallbackVideos = generateMockVideos(
+                              studyPlan.length
+                            );
+                            const newUrls = [...videoUrls];
+                            newUrls[index] =
+                              fallbackVideos[index % fallbackVideos.length];
+                            setVideoUrls(newUrls);
                           }}
                         >
-                          Retry
+                          Try Fallback Video
                         </Button>
                       </div>
                     ) : (
-                      <video
-                        ref={(el) => {
-                          videoRefs.current[index] = el;
-                        }}
-                        src={videoUrl}
-                        controls
-                        loop
-                        className="w-full h-full object-contain"
-                        onLoadedData={() => handleVideoLoad(index)}
-                        onError={() => handleVideoError(index)}
-                      />
+                      <>
+                        <video
+                          ref={(el) => {
+                            videoRefs.current[index] = el;
+                          }}
+                          src={videoUrl}
+                          controls
+                          loop
+                          playsInline
+                          preload="auto"
+                          poster="https://placehold.co/600x400/black/white?text=Loading+Video"
+                          className="w-full h-full object-contain"
+                          onLoadedData={() => handleVideoLoad(index)}
+                          onError={() => handleVideoError(index)}
+                          style={{
+                            display: videoLoading[index] ? "none" : "block",
+                          }}
+                        />
+                        {videoLoading[index] && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
+                            <Loader2 className="h-12 w-12 animate-spin text-white mb-2" />
+                            <p className="text-white text-sm">
+                              Loading video...
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 

@@ -381,6 +381,7 @@ var { g: global, __dirname, k: __turbopack_refresh__, m: module } = __turbopack_
 __turbopack_context__.s({
     "default": (()=>StudyPlanGenerator)
 });
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-client] (ecmascript)");
@@ -506,27 +507,43 @@ function useSwipe(onSwipeUp, onSwipeDown) {
     };
 }
 _s(useSwipe, "TD778kjXd0H7nx2T8Q8BGHdlSXM=");
-// Mock study plan data - in a real app, this would come from your API
+// Add a constant for the API URL at the top of the file with other constants
+const API_BASE_URL = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_URL || "http://192.168.0.38:4000";
+// Update generateStudyPlan function to use the API_BASE_URL
 const generateStudyPlan = async (topic)=>{
     try {
-        const response = await fetch("http://localhost:4000/createStudyPlan", {
+        // Use the API_BASE_URL constant instead of hardcoded localhost
+        const response = await fetch(`${API_BASE_URL}/createStudyPlan`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 prompt: `${topic}`
-            })
+            }),
+            // Add timeout to prevent long-hanging requests
+            signal: AbortSignal.timeout(10000)
         });
         if (!response.ok) {
             throw new Error(`Error: ${response.statusText}`);
         }
         const rawData = await response.text();
+        if (!rawData) {
+            console.error("Empty response from API");
+            return null;
+        }
         const cleanedData = rawData.replace(/^```json/, "").replace(/```$/, "").trim();
-        // console.log(cleanedData);
-        const data = JSON.parse(cleanedData);
-        // console.log("Generated study plan:", data);
-        return data; // Assuming the API returns a JSON object
+        try {
+            const data = JSON.parse(cleanedData);
+            if (!Array.isArray(data)) {
+                console.error("API returned non-array data:", data);
+                return null;
+            }
+            return data;
+        } catch (parseError) {
+            console.error("Failed to parse JSON:", parseError, "Raw data:", rawData);
+            return null;
+        }
     } catch (error) {
         console.error("Failed to generate study plan:", error);
         return null;
@@ -574,12 +591,12 @@ const FloatingHeart = ({ style })=>{
             size: 16
         }, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 222,
+            lineNumber: 242,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 218,
+        lineNumber: 238,
         columnNumber: 5
     }, this);
 };
@@ -610,7 +627,7 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                             children: "Share this video"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 260,
+                            lineNumber: 280,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -620,18 +637,18 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                                 size: 20
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 265,
+                                lineNumber: 285,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 261,
+                            lineNumber: 281,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.tsx",
-                    lineNumber: 259,
+                    lineNumber: 279,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -639,7 +656,7 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                     children: "Share this learning video with friends:"
                 }, void 0, false, {
                     fileName: "[project]/app/page.tsx",
-                    lineNumber: 269,
+                    lineNumber: 289,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -651,7 +668,7 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                             className: "flex-1"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 274,
+                            lineNumber: 294,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -662,24 +679,24 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                                 size: 18
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 276,
+                                lineNumber: 296,
                                 columnNumber: 23
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$copy$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Copy$3e$__["Copy"], {
                                 size: 18
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 276,
+                                lineNumber: 296,
                                 columnNumber: 45
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 275,
+                            lineNumber: 295,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.tsx",
-                    lineNumber: 273,
+                    lineNumber: 293,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -699,12 +716,12 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                                         children: platform[0]
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 287,
+                                        lineNumber: 307,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 286,
+                                    lineNumber: 306,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -712,34 +729,49 @@ const ShareModal = ({ isOpen, onClose, videoTitle })=>{
                                     children: platform
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 289,
+                                    lineNumber: 309,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, platform, true, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 282,
+                            lineNumber: 302,
                             columnNumber: 13
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/app/page.tsx",
-                    lineNumber: 280,
+                    lineNumber: 300,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 255,
+            lineNumber: 275,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 251,
+        lineNumber: 271,
         columnNumber: 5
     }, this);
 };
 _s1(ShareModal, "NE86rL3vg4NVcTTWDavsT0hUBJs=");
 _c1 = ShareModal;
+// Add this mock video generation function
+const generateMockVideos = (count = 4)=>{
+    // Use demo videos that are known to work well on mobile
+    const demoVideos = [
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+    ];
+    // Return requested number of videos, cycling through available ones if needed
+    return Array.from({
+        length: count
+    }, (_, i)=>demoVideos[i % demoVideos.length]);
+};
 function StudyPlanGenerator() {
     _s2();
     const [step, setStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(1);
@@ -787,19 +819,35 @@ function StudyPlanGenerator() {
     const handlePromptSubmit = async ()=>{
         if (!learningPrompt) return;
         setIsLoading(true);
-        // Simulate API call with a timeout
-        setTimeout(async ()=>{
-            const generatedPlan = await generateStudyPlan(learningPrompt);
-            setStudyPlan(generatedPlan);
+        try {
+            // Simulate API call with a timeout
+            const generatedPlan = await new Promise((resolve)=>{
+                setTimeout(async ()=>{
+                    try {
+                        const plan = await generateStudyPlan(learningPrompt);
+                        if (plan && Array.isArray(plan) && plan.length > 0) {
+                            resolve(plan);
+                        } else {
+                            // Fallback to mock data if API returns null or empty array
+                            console.log("Using mock data as fallback");
+                            resolve(generateMockStudyPlan(learningPrompt));
+                        }
+                    } catch (error) {
+                        console.error("Error generating study plan:", error);
+                        resolve(generateMockStudyPlan(learningPrompt));
+                    }
+                }, 1500);
+            });
+            setStudyPlan(generatedPlan || []);
             setIsLoading(false);
             setStep(2);
-        }, 1500);
-    // setTimeout(async () => {
-    // 	const generatedPlan = await generateMockStudyPlan(learningPrompt);
-    // 	setStudyPlan(generatedPlan);
-    // 	setIsLoading(false);
-    // 	setStep(2);
-    // }, 1500);
+        } catch (error) {
+            console.error("Failed in handlePromptSubmit:", error);
+            // Use mock data as fallback
+            setStudyPlan(generateMockStudyPlan(learningPrompt));
+            setIsLoading(false);
+            setStep(2);
+        }
     };
     const debug = ()=>{
         // console.log("debug ", showComments);
@@ -818,7 +866,7 @@ function StudyPlanGenerator() {
         if (!refinementInstructions) return;
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:4000/refineStudyPlan", {
+            const response = await fetch(`${API_BASE_URL}/refineStudyPlan`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -826,29 +874,39 @@ function StudyPlanGenerator() {
                 body: JSON.stringify({
                     prompt: JSON.stringify(studyPlan),
                     refinement: refinementInstructions
-                })
+                }),
+                signal: AbortSignal.timeout(15000)
             });
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
             const rawData = await response.text();
-            // console.log("raw", JSON.stringify(rawData));
-            const cleanedData = rawData.replace(/^```json/, "").replace(/```$/, "").trim();
-            // Ensure the data is parsed as an array
-            const refinedPlan = JSON.parse(cleanedData);
-            // console.log("refined", JSON.stringify(refinedPlan));
-            if (!Array.isArray(refinedPlan)) {
-                throw new Error("Received invalid study plan format");
+            if (!rawData) {
+                throw new Error("Empty response from refinement API");
             }
-            setStudyPlan(refinedPlan);
-            setRefinementInstructions("");
-            setIsLoading(false);
-            setStep(2); // Back to review
+            const cleanedData = rawData.replace(/^```json/, "").replace(/```$/, "").trim();
+            try {
+                // Ensure the data is parsed as an array
+                const refinedPlan = JSON.parse(cleanedData);
+                if (!Array.isArray(refinedPlan)) {
+                    throw new Error("Received invalid study plan format");
+                }
+                setStudyPlan(refinedPlan);
+                setRefinementInstructions("");
+                setIsLoading(false);
+                setStep(2); // Back to review
+            } catch (parseError) {
+                console.error("Failed to parse refinement JSON:", parseError);
+                // Keep the original study plan if parsing fails
+                setIsLoading(false);
+                // Show an error message
+                alert("Sorry, there was an error refining your study plan. Please try again.");
+            }
         } catch (error) {
             console.error("Failed to refine study plan:", error);
             setIsLoading(false);
-            // Optionally show an error message to the user
-            return null;
+            // Keep the original plan
+            alert("Sorry, there was an error connecting to the server. Please try again.");
         }
     };
     // Handle character and background selection
@@ -856,58 +914,107 @@ function StudyPlanGenerator() {
         if (!selectedCharacter || !selectedBackground) return;
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:4000/generateStudyPlanVideos", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    studyPlan: JSON.stringify(studyPlan),
-                    background: selectedBackground,
-                    voiceActor: selectedCharacter
-                })
-            });
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+            let data = [];
+            // First try the standard API approach
+            try {
+                console.log("Attempting to generate videos via API");
+                const response = await fetch(`${API_BASE_URL}/generateStudyPlanVideos`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        studyPlan: JSON.stringify(studyPlan),
+                        background: selectedBackground,
+                        voiceActor: selectedCharacter
+                    }),
+                    signal: AbortSignal.timeout(5000)
+                });
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+                data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error("API returned empty or invalid data");
+                }
+                console.log("Videos generated successfully via API:", data);
+            } catch (apiError) {
+                console.warn("API video generation failed, using fallback videos:", apiError);
+                // Use mock videos as fallback - pass the actual length we need
+                data = generateMockVideos(studyPlan.length || 4);
+                console.log("Using fallback videos:", data);
             }
-            const data = await response.json();
-            console.log("Videos generated successfully:", data);
-            // Store the video URLs returned from the API
-            if (Array.isArray(data)) {
-                setVideoUrls(data);
-                // Initialize loading and error states for each video
-                setVideoLoading(new Array(data.length).fill(true));
-                setVideoErrors(new Array(data.length).fill(false));
-            } else {
-                console.error("Unexpected response format:", data);
-            }
+            // Store the video URLs
+            setVideoUrls(data);
+            // Initialize loading and error states for each video
+            setVideoLoading(new Array(data.length).fill(true));
+            setVideoErrors(new Array(data.length).fill(false));
             setIsLoading(false);
             setStep(5); // Go to video display
         } catch (error) {
-            console.error("Failed to generate videos:", error);
-            setIsLoading(false);
-        // Could show an error message to the user here
+            console.error("Failed completely in handleContinueToVideos:", error);
+            // Last resort fallback - still show videos even if all else fails
+            try {
+                console.log("Using emergency fallback videos");
+                const mockVideos = generateMockVideos(studyPlan.length || 4);
+                setVideoUrls(mockVideos);
+                setVideoLoading(new Array(mockVideos.length).fill(true));
+                setVideoErrors(new Array(mockVideos.length).fill(false));
+                setIsLoading(false);
+                setStep(5);
+            } catch (fallbackError) {
+                console.error("Even fallback failed:", fallbackError);
+                setIsLoading(false);
+                alert("Sorry, there was an error generating videos. Please try again.");
+            }
         }
     };
     // Handle video load events
     const handleVideoLoad = (index)=>{
+        console.log(`Video ${index} loaded successfully: ${videoUrls[index]}`);
         const newLoadingState = [
             ...videoLoading
         ];
         newLoadingState[index] = false;
         setVideoLoading(newLoadingState);
+        // Try to play the video if it's the current one
+        if (index === currentVideoIndex) {
+            const videoRef = videoRefs.current[index];
+            if (videoRef) {
+                // Use muted playback which is more likely to work on mobile
+                videoRef.muted = true;
+                videoRef.play().then(()=>{
+                    // Once successfully playing, can try to unmute on user interaction
+                    console.log(`Video ${index} playing successfully`);
+                    videoRef.muted = false;
+                }).catch((err)=>{
+                    console.warn("Could not autoplay video, will require user interaction:", err);
+                });
+            }
+        }
     };
     // Handle video error events
     const handleVideoError = (index)=>{
+        console.error(`Error loading video ${index}: ${videoUrls[index]}`);
+        // Try to automatically replace with a fallback video
+        const fallbackVideos = generateMockVideos(studyPlan.length);
+        const newUrls = [
+            ...videoUrls
+        ];
+        newUrls[index] = fallbackVideos[index % fallbackVideos.length];
+        console.log(`Replacing with fallback: ${newUrls[index]}`);
+        setVideoUrls(newUrls);
+        // Reset error state so it will try to load the new URL
         const newErrorState = [
             ...videoErrors
         ];
-        newErrorState[index] = true;
+        newErrorState[index] = false;
         setVideoErrors(newErrorState);
+        // Keep the loading state as true
         const newLoadingState = [
             ...videoLoading
         ];
-        newLoadingState[index] = false;
+        newLoadingState[index] = true;
         setVideoLoading(newLoadingState);
     };
     // Add this function to handle video navigation
@@ -1078,7 +1185,7 @@ function StudyPlanGenerator() {
             let sessionId = chatSessionIds[currentVideoIndex];
             // If no session exists for this video, start a new one
             if (!sessionId) {
-                const startResponse = await fetch("http://localhost:4000/chat/start", {
+                const startResponse = await fetch(`${API_BASE_URL}/chat/start`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -1099,7 +1206,7 @@ function StudyPlanGenerator() {
                 });
             }
             // Send the user message to the API
-            const messageResponse = await fetch("http://localhost:4000/chat/message", {
+            const messageResponse = await fetch(`${API_BASE_URL}/chat/message`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -1192,18 +1299,44 @@ function StudyPlanGenerator() {
             videoRefs.current.forEach({
                 "StudyPlanGenerator.useEffect": (videoRef, idx)=>{
                     if (videoRef && idx !== currentVideoIndex) {
-                        videoRef.pause();
+                        try {
+                            videoRef.pause();
+                        } catch (e) {
+                            console.warn("Could not pause video:", e);
+                        }
                     }
                 }
             }["StudyPlanGenerator.useEffect"]);
             // Play current video
             const currentVideo = videoRefs.current[currentVideoIndex];
             if (currentVideo && !videoLoading[currentVideoIndex] && !videoErrors[currentVideoIndex]) {
-                currentVideo.play().catch({
-                    "StudyPlanGenerator.useEffect": (err)=>{
-                        console.error("Error playing video:", err);
-                    }
-                }["StudyPlanGenerator.useEffect"]);
+                // On mobile, especially iOS, videos can only play after user interaction
+                // Try muted first which has less restrictions
+                currentVideo.muted = true;
+                const playPromise = currentVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.then({
+                        "StudyPlanGenerator.useEffect": ()=>{
+                            // Auto-play successful
+                            // Can try to unmute - this may still require user interaction
+                            setTimeout({
+                                "StudyPlanGenerator.useEffect": ()=>{
+                                    try {
+                                        currentVideo.muted = false;
+                                    } catch (e) {
+                                        console.warn("Could not unmute video:", e);
+                                    }
+                                }
+                            }["StudyPlanGenerator.useEffect"], 1000);
+                        }
+                    }["StudyPlanGenerator.useEffect"]).catch({
+                        "StudyPlanGenerator.useEffect": (err)=>{
+                            console.warn("Auto-play prevented by browser:", err);
+                        // Show a play button or instructions for user interaction
+                        // This can be handled by the controls attribute
+                        }
+                    }["StudyPlanGenerator.useEffect"]);
+                }
             }
         }
     }["StudyPlanGenerator.useEffect"], [
@@ -1232,7 +1365,7 @@ function StudyPlanGenerator() {
                 }
             }, void 0, false, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 801,
+                lineNumber: 956,
                 columnNumber: 7
             }, this),
             step === 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1244,20 +1377,20 @@ function StudyPlanGenerator() {
                                 children: "Interactive Study Plan Generator"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 807,
+                                lineNumber: 962,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Tell us what you want to learn about"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 810,
+                                lineNumber: 965,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 806,
+                        lineNumber: 961,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1269,17 +1402,17 @@ function StudyPlanGenerator() {
                                 onChange: (e)=>setLearningPrompt(e.target.value)
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 816,
+                                lineNumber: 971,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 815,
+                            lineNumber: 970,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 814,
+                        lineNumber: 969,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1293,7 +1426,7 @@ function StudyPlanGenerator() {
                                         className: "mr-2 h-4 w-4 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 831,
+                                        lineNumber: 986,
                                         columnNumber: 19
                                     }, this),
                                     "Generating Study Plan..."
@@ -1301,18 +1434,18 @@ function StudyPlanGenerator() {
                             }, void 0, true) : "Generate Study Plan"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 824,
+                            lineNumber: 979,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 823,
+                        lineNumber: 978,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 805,
+                lineNumber: 960,
                 columnNumber: 9
             }, this),
             step === 2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1324,7 +1457,7 @@ function StudyPlanGenerator() {
                                 children: "Your Study Plan"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 846,
+                                lineNumber: 1001,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -1335,19 +1468,19 @@ function StudyPlanGenerator() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 847,
+                                lineNumber: 1002,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 845,
+                        lineNumber: 1000,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "space-y-4",
-                            children: studyPlan.map((item, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                            children: studyPlan && studyPlan.length > 0 ? studyPlan.map((item, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
                                     className: "bg-muted/50",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHeader"], {
@@ -1361,36 +1494,36 @@ function StudyPlanGenerator() {
                                                             children: item.subject
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 857,
-                                                            columnNumber: 23
+                                                            lineNumber: 1013,
+                                                            columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "text-xs font-medium px-2 py-1 rounded-full bg-secondary/10",
                                                             children: item.depth_of_information
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 860,
-                                                            columnNumber: 23
+                                                            lineNumber: 1016,
+                                                            columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 856,
-                                                    columnNumber: 21
+                                                    lineNumber: 1012,
+                                                    columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
                                                     className: "text-base",
                                                     children: item.title
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 864,
-                                                    columnNumber: 21
+                                                    lineNumber: 1020,
+                                                    columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 855,
-                                            columnNumber: 19
+                                            lineNumber: 1011,
+                                            columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
                                             className: "py-2",
@@ -1400,42 +1533,57 @@ function StudyPlanGenerator() {
                                                     children: item.outline
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 867,
-                                                    columnNumber: 21
+                                                    lineNumber: 1023,
+                                                    columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-xs mt-2 text-muted-foreground",
                                                     children: [
-                                                        "Estimated length: ",
+                                                        "Estimated length:",
+                                                        " ",
                                                         Math.floor(item.proposed_length / 60),
                                                         ":",
                                                         (item.proposed_length % 60).toString().padStart(2, "0")
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 870,
-                                                    columnNumber: 21
+                                                    lineNumber: 1026,
+                                                    columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 866,
-                                            columnNumber: 19
+                                            lineNumber: 1022,
+                                            columnNumber: 21
                                         }, this)
                                     ]
                                 }, index, true, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 854,
-                                    columnNumber: 17
-                                }, this))
+                                    lineNumber: 1010,
+                                    columnNumber: 19
+                                }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "text-center py-6",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-muted-foreground",
+                                    children: "No study plan generated yet. Please try again."
+                                }, void 0, false, {
+                                    fileName: "[project]/app/page.tsx",
+                                    lineNumber: 1038,
+                                    columnNumber: 19
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/page.tsx",
+                                lineNumber: 1037,
+                                columnNumber: 17
+                            }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 852,
+                            lineNumber: 1007,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 851,
+                        lineNumber: 1006,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1448,7 +1596,7 @@ function StudyPlanGenerator() {
                                 children: "Needs Refinement"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 880,
+                                lineNumber: 1046,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1457,19 +1605,19 @@ function StudyPlanGenerator() {
                                 children: "Looks Good!"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 887,
+                                lineNumber: 1053,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 879,
+                        lineNumber: 1045,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 844,
+                lineNumber: 999,
                 columnNumber: 9
             }, this),
             step === 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1481,20 +1629,20 @@ function StudyPlanGenerator() {
                                 children: "Refine Your Study Plan"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 898,
+                                lineNumber: 1064,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Tell us how to improve the study plan"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 899,
+                                lineNumber: 1065,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 897,
+                        lineNumber: 1063,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1507,17 +1655,17 @@ function StudyPlanGenerator() {
                                 rows: 4
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 905,
+                                lineNumber: 1071,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 904,
+                            lineNumber: 1070,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 903,
+                        lineNumber: 1069,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1531,7 +1679,7 @@ function StudyPlanGenerator() {
                                         className: "mr-2 h-4 w-4 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 921,
+                                        lineNumber: 1087,
                                         columnNumber: 19
                                     }, this),
                                     "Refining Study Plan..."
@@ -1539,18 +1687,18 @@ function StudyPlanGenerator() {
                             }, void 0, true) : "Submit Refinement"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 914,
+                            lineNumber: 1080,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 913,
+                        lineNumber: 1079,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 896,
+                lineNumber: 1062,
                 columnNumber: 9
             }, this),
             step === 4 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1562,20 +1710,20 @@ function StudyPlanGenerator() {
                                 children: "Customize Your Learning Experience"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 936,
+                                lineNumber: 1102,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Choose your narrator and background style"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 939,
+                                lineNumber: 1105,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 935,
+                        lineNumber: 1101,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1589,7 +1737,7 @@ function StudyPlanGenerator() {
                                             children: "Select Your Narration Character"
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 947,
+                                            lineNumber: 1113,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1606,20 +1754,20 @@ function StudyPlanGenerator() {
                                                                     alt: character.name
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 962,
+                                                                    lineNumber: 1128,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                                     children: character.name.substring(0, 2)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 966,
+                                                                    lineNumber: 1132,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 961,
+                                                            lineNumber: 1127,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1627,24 +1775,24 @@ function StudyPlanGenerator() {
                                                             children: character.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 970,
+                                                            lineNumber: 1136,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, character.id, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 952,
+                                                    lineNumber: 1118,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 950,
+                                            lineNumber: 1116,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 946,
+                                    lineNumber: 1112,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1654,7 +1802,7 @@ function StudyPlanGenerator() {
                                             children: "Choose Your Background Style"
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 984,
+                                            lineNumber: 1150,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1672,7 +1820,7 @@ function StudyPlanGenerator() {
                                                                     className: "w-full h-full object-cover"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 999,
+                                                                    lineNumber: 1165,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 selectedBackground === background.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1694,28 +1842,28 @@ function StudyPlanGenerator() {
                                                                                 points: "20 6 9 17 4 12"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/page.tsx",
-                                                                                lineNumber: 1019,
+                                                                                lineNumber: 1185,
                                                                                 columnNumber: 33
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/page.tsx",
-                                                                            lineNumber: 1007,
+                                                                            lineNumber: 1173,
                                                                             columnNumber: 31
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1006,
+                                                                        lineNumber: 1172,
                                                                         columnNumber: 29
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1005,
+                                                                    lineNumber: 1171,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 998,
+                                                            lineNumber: 1164,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1726,7 +1874,7 @@ function StudyPlanGenerator() {
                                                                     children: background.name
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1026,
+                                                                    lineNumber: 1192,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1734,41 +1882,41 @@ function StudyPlanGenerator() {
                                                                     children: background.description
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1027,
+                                                                    lineNumber: 1193,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1025,
+                                                            lineNumber: 1191,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, background.id, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 989,
+                                                    lineNumber: 1155,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 987,
+                                            lineNumber: 1153,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 983,
+                                    lineNumber: 1149,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 944,
+                            lineNumber: 1110,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 943,
+                        lineNumber: 1109,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1782,7 +1930,7 @@ function StudyPlanGenerator() {
                                         className: "mr-2 h-4 w-4 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 1045,
+                                        lineNumber: 1211,
                                         columnNumber: 19
                                     }, this),
                                     "Generating Videos..."
@@ -1790,18 +1938,18 @@ function StudyPlanGenerator() {
                             }, void 0, true) : "Continue to Videos"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 1038,
+                            lineNumber: 1204,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 1037,
+                        lineNumber: 1203,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 934,
+                lineNumber: 1100,
                 columnNumber: 9
             }, this),
             step === 5 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1832,20 +1980,20 @@ function StudyPlanGenerator() {
                                         d: "m12 19-7-7 7-7"
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 1083,
+                                        lineNumber: 1249,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
                                         d: "M19 12H5"
                                     }, void 0, false, {
                                         fileName: "[project]/app/page.tsx",
-                                        lineNumber: 1084,
+                                        lineNumber: 1250,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 1071,
+                                lineNumber: 1237,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1853,13 +2001,13 @@ function StudyPlanGenerator() {
                                 children: "Go back"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 1086,
+                                lineNumber: 1252,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 1066,
+                        lineNumber: 1232,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1878,7 +2026,7 @@ function StudyPlanGenerator() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1105,
+                                            lineNumber: 1271,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1890,12 +2038,12 @@ function StudyPlanGenerator() {
                                                         className: "h-12 w-12 animate-spin text-white"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1114,
+                                                        lineNumber: 1280,
                                                         columnNumber: 25
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1113,
+                                                    lineNumber: 1279,
                                                     columnNumber: 23
                                                 }, this),
                                                 videoErrors[index] ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1905,7 +2053,7 @@ function StudyPlanGenerator() {
                                                             className: "h-16 w-16 mx-auto text-red-500"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1120,
+                                                            lineNumber: 1286,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1913,7 +2061,7 @@ function StudyPlanGenerator() {
                                                             children: "Failed to load video"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1121,
+                                                            lineNumber: 1287,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1930,37 +2078,78 @@ function StudyPlanGenerator() {
                                                                 ];
                                                                 newLoading[index] = true;
                                                                 setVideoLoading(newLoading);
+                                                                // Try loading a fallback video
+                                                                const fallbackVideos = generateMockVideos(studyPlan.length);
+                                                                const newUrls = [
+                                                                    ...videoUrls
+                                                                ];
+                                                                newUrls[index] = fallbackVideos[index % fallbackVideos.length];
+                                                                setVideoUrls(newUrls);
                                                             },
-                                                            children: "Retry"
+                                                            children: "Try Fallback Video"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1122,
+                                                            lineNumber: 1288,
                                                             columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1119,
+                                                    lineNumber: 1285,
                                                     columnNumber: 23
-                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("video", {
-                                                    ref: (el)=>{
-                                                        videoRefs.current[index] = el;
-                                                    },
-                                                    src: videoUrl,
-                                                    controls: true,
-                                                    loop: true,
-                                                    className: "w-full h-full object-contain",
-                                                    onLoadedData: ()=>handleVideoLoad(index),
-                                                    onError: ()=>handleVideoError(index)
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1139,
-                                                    columnNumber: 23
-                                                }, this)
+                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("video", {
+                                                            ref: (el)=>{
+                                                                videoRefs.current[index] = el;
+                                                            },
+                                                            src: videoUrl,
+                                                            controls: true,
+                                                            loop: true,
+                                                            playsInline: true,
+                                                            preload: "auto",
+                                                            poster: "https://placehold.co/600x400/black/white?text=Loading+Video",
+                                                            className: "w-full h-full object-contain",
+                                                            onLoadedData: ()=>handleVideoLoad(index),
+                                                            onError: ()=>handleVideoError(index),
+                                                            style: {
+                                                                display: videoLoading[index] ? "none" : "block"
+                                                            }
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/page.tsx",
+                                                            lineNumber: 1315,
+                                                            columnNumber: 25
+                                                        }, this),
+                                                        videoLoading[index] && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "absolute inset-0 flex flex-col items-center justify-center bg-black/60",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
+                                                                    className: "h-12 w-12 animate-spin text-white mb-2"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/page.tsx",
+                                                                    lineNumber: 1334,
+                                                                    columnNumber: 29
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "text-white text-sm",
+                                                                    children: "Loading video..."
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/page.tsx",
+                                                                    lineNumber: 1335,
+                                                                    columnNumber: 29
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/page.tsx",
+                                                            lineNumber: 1333,
+                                                            columnNumber: 27
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1111,
+                                            lineNumber: 1277,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1971,7 +2160,7 @@ function StudyPlanGenerator() {
                                                     children: index < studyPlan.length ? studyPlan[index].title : `Video ${index + 1}`
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1155,
+                                                    lineNumber: 1346,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1979,7 +2168,7 @@ function StudyPlanGenerator() {
                                                     children: index < studyPlan.length ? studyPlan[index].outline : ""
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1160,
+                                                    lineNumber: 1351,
                                                     columnNumber: 21
                                                 }, this),
                                                 index < studyPlan.length && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1990,7 +2179,7 @@ function StudyPlanGenerator() {
                                                             children: studyPlan[index].subject
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1165,
+                                                            lineNumber: 1356,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1998,7 +2187,7 @@ function StudyPlanGenerator() {
                                                             children: studyPlan[index].depth_of_information
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1168,
+                                                            lineNumber: 1359,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2010,19 +2199,19 @@ function StudyPlanGenerator() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1171,
+                                                            lineNumber: 1362,
                                                             columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1164,
+                                                    lineNumber: 1355,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1154,
+                                            lineNumber: 1345,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2039,20 +2228,20 @@ function StudyPlanGenerator() {
                                                             color: likedVideos.includes(index) ? "#f43f5e" : "white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1187,
+                                                            lineNumber: 1378,
                                                             columnNumber: 23
                                                         }, this),
                                                         hearts.map((heart)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(FloatingHeart, {
                                                                 style: heart.style
                                                             }, heart.id, false, {
                                                                 fileName: "[project]/app/page.tsx",
-                                                                lineNumber: 1202,
+                                                                lineNumber: 1393,
                                                                 columnNumber: 25
                                                             }, this))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1183,
+                                                    lineNumber: 1374,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2064,12 +2253,12 @@ function StudyPlanGenerator() {
                                                         fill: showComments ? "#60a5fa" : "none"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1209,
+                                                        lineNumber: 1400,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1205,
+                                                    lineNumber: 1396,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2079,18 +2268,18 @@ function StudyPlanGenerator() {
                                                         size: 24
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1221,
+                                                        lineNumber: 1412,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1217,
+                                                    lineNumber: 1408,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1182,
+                                            lineNumber: 1373,
                                             columnNumber: 19
                                         }, this),
                                         currentVideoIndex > 0 && !showComments && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2111,17 +2300,17 @@ function StudyPlanGenerator() {
                                                     d: "m18 15-6-6-6 6"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1243,
+                                                    lineNumber: 1434,
                                                     columnNumber: 25
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/page.tsx",
-                                                lineNumber: 1231,
+                                                lineNumber: 1422,
                                                 columnNumber: 23
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1227,
+                                            lineNumber: 1418,
                                             columnNumber: 21
                                         }, this),
                                         currentVideoIndex < videoUrls.length - 1 && !showComments && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2142,17 +2331,17 @@ function StudyPlanGenerator() {
                                                     d: "m6 9 6 6 6-6"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1266,
+                                                    lineNumber: 1457,
                                                     columnNumber: 27
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/page.tsx",
-                                                lineNumber: 1254,
+                                                lineNumber: 1445,
                                                 columnNumber: 25
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1250,
+                                            lineNumber: 1441,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2161,12 +2350,12 @@ function StudyPlanGenerator() {
                                                     className: `h-1 rounded-full ${i === currentVideoIndex ? "bg-white w-6" : "bg-white/30 w-4"} transition-all duration-300`
                                                 }, i, false, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1274,
+                                                    lineNumber: 1465,
                                                     columnNumber: 23
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1272,
+                                            lineNumber: 1463,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2181,7 +2370,7 @@ function StudyPlanGenerator() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1287,
+                                                    lineNumber: 1478,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Avatar"], {
@@ -2192,26 +2381,26 @@ function StudyPlanGenerator() {
                                                             alt: __TURBOPACK__imported__module__$5b$project$5d2f$options$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["characters"].find((c)=>c.id === selectedCharacter)?.name || "Narrator"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1292,
+                                                            lineNumber: 1483,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                             children: __TURBOPACK__imported__module__$5b$project$5d2f$options$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["characters"].find((c)=>c.id === selectedCharacter)?.name?.substring(0, 2) || "NA"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1302,
+                                                            lineNumber: 1493,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/page.tsx",
-                                                    lineNumber: 1291,
+                                                    lineNumber: 1482,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1286,
+                                            lineNumber: 1477,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2227,7 +2416,7 @@ function StudyPlanGenerator() {
                                                                 children: "Comments"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/page.tsx",
-                                                                lineNumber: 1319,
+                                                                lineNumber: 1510,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2237,18 +2426,18 @@ function StudyPlanGenerator() {
                                                                     size: 24
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1326,
+                                                                    lineNumber: 1517,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/page.tsx",
-                                                                lineNumber: 1322,
+                                                                lineNumber: 1513,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1318,
+                                                        lineNumber: 1509,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2265,20 +2454,20 @@ function StudyPlanGenerator() {
                                                                                     alt: comment.user.name
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                    lineNumber: 1336,
+                                                                                    lineNumber: 1527,
                                                                                     columnNumber: 33
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                                                     children: comment.user.name.substring(0, 2)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                    lineNumber: 1342,
+                                                                                    lineNumber: 1533,
                                                                                     columnNumber: 33
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/page.tsx",
-                                                                            lineNumber: 1335,
+                                                                            lineNumber: 1526,
                                                                             columnNumber: 31
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2296,13 +2485,13 @@ function StudyPlanGenerator() {
                                                                                                     children: "AI"
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                                    lineNumber: 1351,
+                                                                                                    lineNumber: 1542,
                                                                                                     columnNumber: 39
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
                                                                                             fileName: "[project]/app/page.tsx",
-                                                                                            lineNumber: 1348,
+                                                                                            lineNumber: 1539,
                                                                                             columnNumber: 35
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2310,13 +2499,13 @@ function StudyPlanGenerator() {
                                                                                             children: comment.timestamp
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/page.tsx",
-                                                                                            lineNumber: 1356,
+                                                                                            lineNumber: 1547,
                                                                                             columnNumber: 35
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                    lineNumber: 1347,
+                                                                                    lineNumber: 1538,
                                                                                     columnNumber: 33
                                                                                 }, this),
                                                                                 comment.isAI ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2325,31 +2514,31 @@ function StudyPlanGenerator() {
                                                                                         children: comment.text
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/app/page.tsx",
-                                                                                        lineNumber: 1362,
+                                                                                        lineNumber: 1553,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                    lineNumber: 1361,
+                                                                                    lineNumber: 1552,
                                                                                     columnNumber: 35
                                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                                     className: "text-white/90 text-sm mt-1",
                                                                                     children: comment.text
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/page.tsx",
-                                                                                    lineNumber: 1367,
+                                                                                    lineNumber: 1558,
                                                                                     columnNumber: 35
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/page.tsx",
-                                                                            lineNumber: 1346,
+                                                                            lineNumber: 1537,
                                                                             columnNumber: 31
                                                                         }, this)
                                                                     ]
                                                                 }, comment.id, true, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1334,
+                                                                    lineNumber: 1525,
                                                                     columnNumber: 29
                                                                 }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 className: "flex flex-col items-center justify-center h-40 text-gray-500",
@@ -2359,14 +2548,14 @@ function StudyPlanGenerator() {
                                                                         className: "mb-2 opacity-50"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1376,
+                                                                        lineNumber: 1567,
                                                                         columnNumber: 29
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                         children: "No comments yet"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1380,
+                                                                        lineNumber: 1571,
                                                                         columnNumber: 29
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2374,26 +2563,26 @@ function StudyPlanGenerator() {
                                                                         children: "Be the first to comment on this video"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1381,
+                                                                        lineNumber: 1572,
                                                                         columnNumber: 29
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/page.tsx",
-                                                                lineNumber: 1375,
+                                                                lineNumber: 1566,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 ref: commentsEndRef
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/page.tsx",
-                                                                lineNumber: 1386,
+                                                                lineNumber: 1577,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1331,
+                                                        lineNumber: 1522,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2414,7 +2603,7 @@ function StudyPlanGenerator() {
                                                                     }
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1392,
+                                                                    lineNumber: 1583,
                                                                     columnNumber: 27
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2427,56 +2616,56 @@ function StudyPlanGenerator() {
                                                                         className: "animate-spin"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1413,
+                                                                        lineNumber: 1604,
                                                                         columnNumber: 31
                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$send$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Send$3e$__["Send"], {
                                                                         size: 18
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/page.tsx",
-                                                                        lineNumber: 1415,
+                                                                        lineNumber: 1606,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/page.tsx",
-                                                                    lineNumber: 1404,
+                                                                    lineNumber: 1595,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/page.tsx",
-                                                            lineNumber: 1391,
+                                                            lineNumber: 1582,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/page.tsx",
-                                                        lineNumber: 1390,
+                                                        lineNumber: 1581,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/page.tsx",
-                                                lineNumber: 1316,
+                                                lineNumber: 1507,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/page.tsx",
-                                            lineNumber: 1311,
+                                            lineNumber: 1502,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/page.tsx",
-                                    lineNumber: 1103,
+                                    lineNumber: 1269,
                                     columnNumber: 17
                                 }, this)
                             }, index, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 1092,
+                                lineNumber: 1258,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 1090,
+                        lineNumber: 1256,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ShareModal, {
@@ -2485,13 +2674,13 @@ function StudyPlanGenerator() {
                         videoTitle: currentVideoIndex < studyPlan.length ? studyPlan[currentVideoIndex]?.title || "Learning Video" : `Video ${currentVideoIndex + 1}`
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 1428,
+                        lineNumber: 1619,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 1058,
+                lineNumber: 1224,
                 columnNumber: 9
             }, this),
             isLoading && step === 4 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2503,7 +2692,7 @@ function StudyPlanGenerator() {
                             className: "h-12 w-12 animate-spin mx-auto"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 1444,
+                            lineNumber: 1635,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2511,7 +2700,7 @@ function StudyPlanGenerator() {
                             children: "Generating your videos..."
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 1445,
+                            lineNumber: 1636,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2519,24 +2708,24 @@ function StudyPlanGenerator() {
                             children: "This may take a moment"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 1448,
+                            lineNumber: 1639,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.tsx",
-                    lineNumber: 1443,
+                    lineNumber: 1634,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 1442,
+                lineNumber: 1633,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 799,
+        lineNumber: 954,
         columnNumber: 5
     }, this);
 }
