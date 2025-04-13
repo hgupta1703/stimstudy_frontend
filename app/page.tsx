@@ -331,6 +331,13 @@ export default function StudyPlanGenerator() {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
+  // Add a scroll-to-top effect when changing to key steps
+  useEffect(() => {
+    if (step === 4 || step === 5) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [step]);
+
   // Handle the initial prompt submission
   const handlePromptSubmit = async () => {
     if (!learningPrompt) return;
