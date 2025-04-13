@@ -92,11 +92,11 @@ const generateStudyPlan = async (topic: string) => {
 		}
 		const rawData = await response.text();
 		const cleanedData = rawData.replace(/^```json/, "").replace(/```$/, "").trim();
-		console.log(cleanedData);
+		// console.log(cleanedData);
 
 		const data = JSON.parse(cleanedData);
 
-		console.log("Generated study plan:", data);
+		// console.log("Generated study plan:", data);
 		return data; // Assuming the API returns a JSON object
 	} catch (error) {
 		console.error("Failed to generate study plan:", error);
@@ -286,9 +286,9 @@ export default function StudyPlanGenerator() {
 	};
 
 	const debug = () => {
-		console.log("debug ", showComments);
+		// console.log("debug ", showComments);
 		setShowComments(!showComments);
-		console.log("debug ", showComments);
+		// console.log("debug ", showComments);
 	}
 
 
@@ -301,63 +301,6 @@ export default function StudyPlanGenerator() {
 		}
 	};
 
-	// Handle refinement submission
-	// const handleRefinementSubmit = async () => {
-	// 	if (!refinementInstructions) return;
-
-	// 	setIsLoading(true);
-
-	// 	// Simulate API call with a timeout
-	// 	// setTimeout(() => {
-	// 	// 	// In a real app, you would send the refinement instructions to your API
-			
-	// 	// 	// Here we're just modifying the mock data slightly
-	// 	// 	const refinedPlan = studyPlan.map((item) => ({
-	// 	// 		...item,
-	// 	// 		title: item.title.includes("Refined")
-	// 	// 			? item.title
-	// 	// 			: `Refined: ${item.title}`,
-	// 	// 	}));
-
-	// 	// 	setStudyPlan(refinedPlan);
-	// 	// 	setRefinementInstructions("");
-	// 	// 	setIsLoading(false);
-	// 	// 	setStep(2); // Back to review
-	// 	// }, 1500);
-
-	// 	try {
-	// 		const response = await fetch("http://localhost:4000/refineStudyPlan", {
-	// 			method: "POST",
-	// 			headers: {
-	// 				"Content-Type": "application/json",
-	// 			},
-	// 			body: JSON.stringify({
-	// 				prompt: `${JSON.stringify(studyPlan)}`,
-	// 				refinement: `${refinementInstructions}`,
-	// 			}),
-	// 		});
-
-	// 		if (!response.ok) {
-	// 			throw new Error(`Error: ${response.statusText}`);
-	// 		}
-	// 		const rawData = await response.text();
-	// 		const cleanedData = rawData
-	// 			.replace(/^```json/, "")
-	// 			.replace(/```$/, "")
-	// 			.trim();
-
-	// 		const refinedPlan = await JSON.parse(cleanedData);
-	// 		setStudyPlan(refinedPlan);
-	// 		setRefinementInstructions("");
-
-	// 		console.log("refined", studyPlan)
-	// 		setIsLoading(false);
-	// 		setStep(2); // Back to review
-	// 	} catch (error) {
-	// 		console.error("Failed to generate study plan:", error);
-	// 		return null;
-	// 	}
-	// };
 
 	const handleRefinementSubmit = async () => {
 		if (!refinementInstructions) return;
@@ -380,7 +323,7 @@ export default function StudyPlanGenerator() {
 			}
 
 			const rawData = await response.text();
-			console.log("raw", JSON.stringify(rawData));
+			// console.log("raw", JSON.stringify(rawData));
 			const cleanedData = rawData
 				.replace(/^```json/, "")
 				.replace(/```$/, "")
@@ -388,7 +331,7 @@ export default function StudyPlanGenerator() {
 
 			// Ensure the data is parsed as an array
 			const refinedPlan = JSON.parse(cleanedData);
-			console.log("refined", JSON.stringify(refinedPlan));
+			// console.log("refined", JSON.stringify(refinedPlan));
 			if (!Array.isArray(refinedPlan)) {
 				throw new Error("Received invalid study plan format");
 			}
@@ -406,10 +349,35 @@ export default function StudyPlanGenerator() {
 	};
 
 	// Handle character and background selection
-	const handleContinueToVideos = () => {
+	const handleContinueToVideos = async () => {
 		if (!selectedCharacter || !selectedBackground) return;
 
 		setIsLoading(true);
+
+		await fetch("http://localhost:4000/generateStudyPlanVideos", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				studyPlan: JSON.stringify(studyPlan),
+				background: selectedBackground,
+				voiceActor: selectedCharacter,
+			}),
+		})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`Error: ${response.statusText}`);
+				}
+				return response.json();
+			})
+			.then((data) => {
+				console.log("Videos generated successfully:", data);
+				// Handle the response data if needed
+			})
+			.catch((error) => {
+				console.error("Failed to generate videos:", error);
+			});
 
 		// Simulate video loading
 		setTimeout(() => {
